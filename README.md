@@ -30,6 +30,10 @@ pip install -r requirements.txt
 python main.py
 ```
 
+## Skidding
+
+if you skid leave credits 
+
 ## 📬 Contact
 
 Telegram: https://t.me/CasanovaServices
