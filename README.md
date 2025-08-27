@@ -6,18 +6,6 @@
 - Patches the license automaticlly into the exe
 - easy to setup
 
-## 📦 Installation
-
-### Setup
-```bash
-git clone https://github.com/Audiontop/ida-pro-patcher
-cd ida-pro-patcher
-
-pip install -r requirements.txt
-
-python main.py
-
-
 ## 🖥️ Supported Platforms
 
 ✅ Windows
@@ -29,6 +17,18 @@ python main.py
 ## 📸 Preview
 
 https://streamable.com/kgtin5
+
+## 📦 Installation
+
+### Setup
+```bash
+git clone https://github.com/Audiontop/ida-pro-patcher
+cd ida-pro-patcher
+
+pip install -r requirements.txt
+
+python main.py
+```
 
 ## 📬 Contact
 
