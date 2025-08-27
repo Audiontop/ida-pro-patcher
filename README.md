@@ -30,6 +30,12 @@ pip install -r requirements.txt
 python main.py
 ```
 
+## dll 
+
+if youre ida uses the ida32.dll not like me ida64.dll 
+
+then change line 186 from ida64.dll to ida32.dll 
+
 ## Skidding
 
 if you skid leave credits 
