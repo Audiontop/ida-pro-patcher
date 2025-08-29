@@ -4,34 +4,12 @@ import json
 import hashlib
 import shutil
 import platform
-import logging
 from datetime import datetime, timedelta
 from colorama import Fore, Style, init
 
 os.system("cls" if os.name == "nt" else "clear")
 if os.name == "nt":
     os.system("title Casanova Patcher")
-
-# Logger
-
-init(autoreset=True)
-
-class ColorFormatter(logging.Formatter):
-    def format(self, record):
-        return (
-            f"[{record.levelname:<8}] "
-            f"{record.name}: "
-            f"{record.getMessage()}{Style.RESET_ALL}"
-        )
-
-logger = logging.getLogger()
-logger.setLevel(logging.DEBUG)
-
-stream_handler = logging.StreamHandler(sys.stdout)
-stream_handler.setFormatter(ColorFormatter())
-
-logger.handlers.clear()
-logger.addHandler(stream_handler)
 
 # Patcher
 
@@ -40,7 +18,6 @@ class IDA:
         self.path = None
         self.email = None
         self.name = None
-        self.log = logger
         self.addons = ["HEXX86", "HEXX64", "HEXARM", "HEXARM64", "HEXMIPS", "HEXMIPS64", "HEXPPC", "HEXPPC64", "HEXRV64", "HEXARC", "HEXARC64"] # "HEXCX86", "HEXCX64", "HEXCARM", "HEXCARM64", "HEXCMIPS", "HEXCMIPS64", "HEXCPPC", "HEXCPPC64", "HEXCRV", "HEXCRV64", "HEXCARC", "HEXCARC64",
         self.patch_origin = bytes.fromhex("EDFD425CF978")
         self.patched = bytes.fromhex("EDFD42CBF978")
@@ -69,7 +46,7 @@ class IDA:
         )
 
     def generate_license(self):
-        print(f"Generating license")
+        print(f"{Fore.MAGENTA}[+] {Fore.RESET}Generating license")
         return {
             "header": {"version": 1},
             "payload": {
@@ -90,20 +67,48 @@ class IDA:
                         "issued_on": self.start_date,
                         "owner": "HexRays",
                         "add_ons": [
-                            # {
-                            #     "id": "48-1337-DEAD-01",
-                            #     "code": "HEXX86L",
-                            #     "owner": "48-0000-0000-00",
-                            #     "start_date": "2025-06-13 00:00:00",
-                            #     "end_date": "2035-12-31 23:59:59",
-                            # },
-                            # {
-                            #     "id": "48-1337-DEAD-02",
-                            #     "code": "HEXX64L",
-                            #     "owner": "48-0000-0000-00",
-                            #     "start_date": "2025-06-13 00:00:00",
-                            #     "end_date": "2035-12-31 23:59:59",
-                            # },
+                            {
+                                "id": "48-1337-DEAD-01",
+                                "code": "HEXX86L", # Hex Rays Decompiler for 32 bit
+                                "owner": "48-0000-0000-00",
+                                "start_date": self.start_date,
+                                "end_date": self.end_date
+                            },
+                            {
+                                "id": "48-1337-DEAD-02",
+                                "code": "HEXX64L", # Hex Rays Decompiler for 64 bit
+                                "owner": "48-0000-0000-00",
+                                "start_date": self.start_date,
+                                "end_date": self.end_date
+                            },
+                            {
+                                "id": "48-1337-DEAD-03",
+                                "code": "HEXARML", # Hex Rays Decompiler for ARM (32 bit + Thumb)
+                                "owner": "48-0000-0000-00",
+                                "start_date": self.start_date,
+                                "end_date": self.end_date
+                            },
+                            {
+                                "id": "48-1337-DEAD-04",
+                                "code": "HEXARM64L", # Hex Rays Decompiler for ARM64 / AArch64
+                                "owner": "48-0000-0000-00",
+                                "start_date": self.start_date,
+                                "end_date": self.end_date
+                            },
+                            {
+                                "id": "48-1337-DEAD-05",
+                                "code": "HEXMIPSL",  # Hex Rays Decompiler for MIPS
+                                "owner": "48-0000-0000-00",
+                                "start_date": self.start_date,
+                                "end_date": self.end_date
+                            },
+                            {
+                                "id": "48-1337-DEAD-06",
+                                "code": "HEXPPCL", # Hex Rays Decompiler for PowerPC
+                                "owner": "48-0000-0000-00",
+                                "start_date": self.start_date,
+                                "end_date": self.end_date
+                            }
                         ],
                         "features": [],
                     }
@@ -112,11 +117,11 @@ class IDA:
         }
 
     def add_all_addons(self, license_dict):
-        print(f"Adding {len(self.addons)} addons")
+        print(f"{Fore.MAGENTA}[+] {Fore.RESET}Adding {len(self.addons)} addons")
         base = license_dict["payload"]["licenses"][0]
         for idx, code in enumerate(self.addons, start=1):
             base["add_ons"].append({
-                "id": f"48-1337-0000-{idx:02}",
+                "id": f"48-2137-ACAB-{idx:02}",
                 "code": code,
                 "owner": base["id"],
                 "start_date": self.start_date,
@@ -137,7 +142,7 @@ class IDA:
         return self.int_to_le_bytes(encrypted)
 
     def sign_license(self, payload: dict) -> str:
-        print("Signing license")
+        print(f"{Fore.MAGENTA}[+] {Fore.RESET}Signing license")
         data_str = self.json_stringify_sorted({"payload": payload})
         buffer = bytearray(128)
         buffer[:33] = b"\x42" * 33
@@ -147,26 +152,26 @@ class IDA:
         return encrypted.hex().upper()
 
     def patch_binary(self, file_path: str):
-        print(f"Patching {file_path}")
+        print(f"{Fore.MAGENTA}[+] {Fore.RESET}Patching {file_path}")
         if not os.path.exists(file_path):
-            self.log.warning(f"Skip: {file_path} - file does not exist")
+            print(f"{Fore.YELLOW}[!] {Fore.RESET}Skip: {file_path} - file does not exist")
             return
 
         with open(file_path, "rb") as f:
             data = f.read()
 
         if self.patched in data:
-            self.log.warning(f"{file_path} is already patched")
+            print(f"{Fore.YELLOW}[!] {Fore.RESET}{file_path} is already patched")
             return
         if self.patch_origin not in data:
-            self.log.warning(f"{file_path} - original patch pattern not found")
+            print(f"{Fore.YELLOW}[!] {Fore.RESET}{file_path} - original patch pattern not found")
             return
 
         data = data.replace(self.patch_origin, self.patched)
         with open(file_path, "wb") as f:
             f.write(data)
 
-        print(f"{file_path} has been successfully patched")
+        print(f"{Fore.GREEN}[+] {Fore.RESET}{file_path} has been successfully patched")
 
     def generate_license_file(self):
         license_data = self.generate_license()
@@ -177,19 +182,29 @@ class IDA:
         license_path = os.path.join(license_dir, self.license_filename)
         with open(license_path, "w") as f:
             f.write(self.json_stringify_sorted(license_data))
-        print(f"New license generated and saved to {license_path}")
+        print(f"{Fore.GREEN}[+] {Fore.RESET}New license generated and saved to {license_path}")
 
     def patch_platform_binaries(self, ida_path: str):
-        print("Patching platform binaries")
+        print(f"{Fore.MAGENTA}[+] {Fore.RESET}Patching platform binaries")
         os_name = platform.system().lower()
-        binaries = {
-            "windows": ["ida.dll", "ida64.dll"],
-            "linux": ["libida.so", "libida32.so"],
-            "darwin": ["libida.dylib", "libida32.dylib"],
-        }.get(os_name, [])
+
+        if os_name == "windows":
+            if os.path.exists(os.path.join(ida_path, "ida64.dll")):
+                binaries = ["ida64.dll"]
+            elif os.path.exists(os.path.join(ida_path, "ida32.dll")):
+                binaries = ["ida32.dll"]
+            elif os.path.exists(os.path.join(ida_path, "ida.dll")):
+                binaries = ["ida.dll"]
+            else:
+                binaries = []
+        else:
+            binaries = {
+                "linux": ["libida.so", "libida32.so"],
+                "darwin": ["libida.dylib", "libida32.dylib"],
+            }.get(os_name, [])
 
         if not binaries:
-            self.log.error(f"Unsupported operating system: {os_name}")
+            print(f"{Fore.RED}[-]{Fore.RESET} Unsupported operating system: {os_name}")
             return
 
         for binary in binaries:
@@ -197,27 +212,35 @@ class IDA:
             self.patch_binary(binary_path)
 
     def move_license_file(self, ida_path: str):
-        print("Copying license file")
+        print(f"{Fore.MAGENTA}[+] {Fore.RESET}Copying license file")
         try:
             source_path = os.path.join(os.getcwd(), "license", self.license_filename)
             dest = os.path.join(ida_path, self.license_filename)
             shutil.copy2(source_path, dest)
-            print(f"License file copied to: {dest}")
+            print(f"{Fore.GREEN}[+] {Fore.RESET}License file copied to: {dest}")
         except Exception as e:
-            self.log.error(f"Failed to copy license file: {e}")
-
+            print(f"{Fore.RED}[-]{Fore.RESET} Failed to copy license file: {e}")
 
 # Main
 
 def main():
-    path = input("Pfad to IDA PRO: ").strip('"').strip()
+    print(f"""{Fore.MAGENTA}
+ ▄▄·  ▄▄▄· .▄▄ ·  ▄▄▄·  ▐ ▄        ▌ ▐· ▄▄▄·     .▄▄ · ▄▄▄ .▄▄▄   ▌ ▐·▪   ▄▄· ▄▄▄ ..▄▄ · 
+▐█ ▌▪▐█ ▀█ ▐█ ▀. ▐█ ▀█ •█▌▐█▪     ▪█·█▌▐█ ▀█     ▐█ ▀. ▀▄.▀·▀▄ █·▪█·█▌██ ▐█ ▌▪▀▄.▀·▐█ ▀. 
+██ ▄▄▄█▀▀█ ▄▀▀▀█▄▄█▀▀█ ▐█▐▐▌ ▄█▀▄ ▐█▐█•▄█▀▀█     ▄▀▀▀█▄▐▀▀▪▄▐▀▀▄ ▐█▐█•▐█·██ ▄▄▐▀▀▪▄▄▀▀▀█▄
+▐███▌▐█ ▪▐▌▐█▄▪▐█▐█ ▪▐▌██▐█▌▐█▌.▐▌ ███ ▐█ ▪▐▌    ▐█▄▪▐█▐█▄▄▌▐█•█▌ ███ ▐█▌▐███▌▐█▄▄▌▐█▄▪▐█
+·▀▀▀  ▀  ▀  ▀▀▀▀  ▀  ▀ ▀▀ █▪ ▀█▄▀▪. ▀   ▀  ▀      ▀▀▀▀  ▀▀▀ .▀  ▀. ▀  ▀▀▀·▀▀▀  ▀▀▀  ▀▀▀▀ 
+{Fore.RESET}""")
+              
+
+    path = input(f"{Fore.MAGENTA}[+] {Fore.RESET}Path to IDA PRO: ").strip('"').strip()
     if not os.path.isdir(path):
-        logger.error(f"Invalid Path: {path}")
+        print(f"{Fore.RED}[-]{Fore.RESET} Invalid Path: {path}")
         return
 
-    name = input("License Name (e.g: HexRays User): ").strip() or "HexRays User"
-    email = input("License Mail (e.g: user@hexrays.com): ").strip() or "user@hexrays.com"
-    end_year_input = input("License expire date (e.g 2035 max 10y): ").strip()
+    name = input(f"{Fore.MAGENTA}[+] {Fore.RESET}License Name (e.g: HexRays User): ").strip() or "HexRays User"
+    email = input(f"{Fore.MAGENTA}[+] {Fore.RESET}License Mail (e.g: user@hexrays.com): ").strip() or "user@hexrays.com"
+    end_year_input = input(f"{Fore.MAGENTA}[+] {Fore.RESET}License expire date (e.g 2035 max 10y): ").strip()
 
     ida = IDA()
     ida.name = name
@@ -228,7 +251,7 @@ def main():
     try:
         end_year = int(end_year_input) if end_year_input else now.year + 10
     except ValueError:
-        logger.error("Invalid Year input")
+        print(f"{Fore.RED}[-]{Fore.RESET} Invalid Year input")
         return
 
     ida.end_date = datetime(end_year, now.month, now.day, now.hour, now.minute, now.second).strftime("%Y-%m-%d %H:%M:%S")
